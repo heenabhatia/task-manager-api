@@ -20,7 +20,7 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @GetMapping("v2/tasks")
+    @GetMapping("/v2/tasks")
     public List<TaskResponseDTO> getAllTasks() {
         return taskService.getAllTasks();
     }
@@ -42,14 +42,11 @@ public class TaskController {
         Optional<TaskResponseDTO> dto =
                 taskService.getTaskResponseById(id);
 
-        if (dto.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
+        return dto.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 
-        return ResponseEntity.ok(dto.get());
     }
 
-    @PostMapping("/v2/task")
+    @PostMapping("/v2/tasks")
     public TaskResponseDTO createTask(@Valid @RequestBody TaskRequestDTO request) {
         return taskService.addTask(request);
     }
@@ -62,11 +59,8 @@ public class TaskController {
         Optional<TaskResponseDTO> updatedTask =
                 taskService.updateTask(id, request);
 
-        if (updatedTask.isPresent()) {
-            return ResponseEntity.ok(updatedTask.get());
-        }
+        return updatedTask.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 
-        return ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/tasks/{id}")

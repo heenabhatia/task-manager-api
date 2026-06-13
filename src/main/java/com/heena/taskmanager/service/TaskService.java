@@ -7,8 +7,6 @@ import com.heena.taskmanager.model.Task;
 import com.heena.taskmanager.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,63 +22,37 @@ public class TaskService {
     public List<TaskResponseDTO> getAllTasks() {
         List<Task> tasks = taskRepository.findAll();
 
-        List<TaskResponseDTO> taskResponseDTOS = new ArrayList<>();
-        for (Task task : tasks) {
-            taskResponseDTOS.add(mapToTaskResponse(task));
-        }
-        return taskResponseDTOS;
+        return tasks.stream().map(this::mapToTaskResponse).toList();
     }
 
     public List<TaskResponseDTO> getTasksByStatus(Status status) {
         List<Task> tasks = taskRepository.findByStatus(status);
 
-        List<TaskResponseDTO> taskResponseDTOS = new ArrayList<>();
-        for (Task task : tasks) {
-            taskResponseDTOS.add(mapToTaskResponse(task));
-        }
-        return taskResponseDTOS;
+        return tasks.stream().map(this::mapToTaskResponse).toList();
     }
 
     public List<TaskResponseDTO> getCompletedTasksUsingQuery() {
         List<Task> tasks = taskRepository.findCompletedTasks();
 
-        List<TaskResponseDTO> taskResponseDTOS = new ArrayList<>();
-        for (Task task : tasks) {
-            taskResponseDTOS.add(mapToTaskResponse(task));
-        }
-        return taskResponseDTOS;
+        return tasks.stream().map(this::mapToTaskResponse).toList();
     }
 
     public Optional<TaskResponseDTO> getTaskResponseById(Long id) {
-
-        Optional<Task> task = taskRepository.findById(id);
-
-        if (task.isEmpty()) {
-            return Optional.empty();
-        }
-
-        Task savedTask = task.get();
-
-        return Optional.of(mapToTaskResponse(savedTask));
+        return taskRepository.findById(id).map(this::mapToTaskResponse);
     }
 
     public Optional<TaskResponseDTO> updateTask(Long id, TaskRequestDTO request) {
-        Optional<Task> existingTask = taskRepository.findById(id);
+        return taskRepository.findById(id)
+                .map(task -> {
+                    task.setTitle(request.getTitle());
+                    task.setDescription(request.getDescription());
+                    task.setPriority(request.getPriority());
+                    task.setStatus(request.getStatus());
 
-        if (existingTask.isPresent()) {
-            Task task = existingTask.get();
+                    Task savedTask = taskRepository.save(task);
 
-            task.setTitle(request.getTitle());
-            task.setDescription(request.getDescription());
-            task.setPriority(request.getPriority());
-            task.setStatus(request.getStatus());
-            task.setUpdatedAt(LocalDateTime.now());
-
-            Task savedTask = taskRepository.save(task);
-            return Optional.of(mapToTaskResponse(savedTask));
-        }
-
-        return Optional.empty();
+                    return mapToTaskResponse(savedTask);
+                });
     }
 
     public boolean deleteTask(Long id) {
@@ -100,8 +72,6 @@ public class TaskService {
         task.setDescription(request.getDescription());
         task.setPriority(request.getPriority());
         task.setStatus(request.getStatus());
-        task.setCreatedAt(LocalDateTime.now());
-        task.setUpdatedAt(LocalDateTime.now());
 
         Task savedTask = taskRepository.save(task);
 
