@@ -1,7 +1,8 @@
 package com.heena.taskmanager.controller;
 
+import com.heena.taskmanager.dto.TaskRequestDTO;
 import com.heena.taskmanager.dto.TaskResponseDTO;
-import com.heena.taskmanager.model.Task;
+import com.heena.taskmanager.model.Status;
 import com.heena.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -19,77 +20,47 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @GetMapping("/hello")
-    public String hello() {
-        return "Task Manager API is running!";
-    }
-
-    @GetMapping("/task")
-    public Task getTask() {
-        return new Task(
-                100L,
-                "Buy groceries",
-                true
-        );
-    }
-
-    @GetMapping("/tasks")
-    public List<Task> getAllTasks() {
+    @GetMapping("v2/tasks")
+    public List<TaskResponseDTO> getAllTasks() {
         return taskService.getAllTasks();
     }
 
-    @GetMapping("/tasks/completed")
-    public List<Task> getCompletedTasks() {
-        return taskService.getCompletedTasks(true);
+    @GetMapping("/v2/tasks/completed")
+    public List<TaskResponseDTO> getCompletedTasks() {
+        return taskService.getTasksByStatus(Status.DONE);
     }
 
-    @GetMapping("/tasks/completed-query")
-    public List<Task> getCompletedTasksUsingQuery() {
+    @GetMapping("/v2/tasks/completed-query")
+    public List<TaskResponseDTO> getCompletedTasksUsingQuery() {
         return taskService.getCompletedTasksUsingQuery();
     }
 
-    @GetMapping("/tasks/{id}")
-    public ResponseEntity<Optional<Task>> getTaskById(@PathVariable Long id) {
-        Optional<Task> task = taskService.getTaskById(id);
-
-        if (task.isPresent()) {
-            return ResponseEntity.ok(Optional.of(task.get()));
-        }
-
-        return ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/tasks/dto/{id}")
-    public ResponseEntity<TaskResponseDTO> getTaskDto(
+    @GetMapping("/v2/tasks/{id}")
+    public ResponseEntity<TaskResponseDTO> getTaskDtoById(
             @PathVariable Long id) {
 
-        TaskResponseDTO dto =
+        Optional<TaskResponseDTO> dto =
                 taskService.getTaskResponseById(id);
 
-        if (dto == null) {
+        if (dto.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(dto.get());
     }
 
-//    @GetMapping("/tasks/{id}")
-//    public Optional<Task> getTaskById(@PathVariable Long id) {
-//        return taskService.getTaskById(id);
-//    }
-
-    @PostMapping("/task")
-    public Task createTask(@Valid @RequestBody Task task) {
-        return taskService.addTask(task);
+    @PostMapping("/v2/task")
+    public TaskResponseDTO createTask(@Valid @RequestBody TaskRequestDTO request) {
+        return taskService.addTask(request);
     }
 
-    @PutMapping("/tasks/{id}")
-    public ResponseEntity<Task> updateTask(
+    @PutMapping("/v2/tasks/{id}")
+    public ResponseEntity<TaskResponseDTO> updateTask2(
             @PathVariable Long id,
-            @Valid @RequestBody Task task) {
+            @Valid @RequestBody TaskRequestDTO request) {
 
-        Optional<Task> updatedTask =
-                taskService.updateTask(id, task);
+        Optional<TaskResponseDTO> updatedTask =
+                taskService.updateTask(id, request);
 
         if (updatedTask.isPresent()) {
             return ResponseEntity.ok(updatedTask.get());
@@ -109,15 +80,4 @@ public class TaskController {
 
         return ResponseEntity.notFound().build();
     }
-
-//    @GetMapping("/tasks")
-//    public List<Task> getAllTasks() {
-//        return tasks;
-//    }
-//
-//    @PostMapping("/task")
-//    public Task createTask(@RequestBody Task task) {
-//        tasks.add(task);
-//        return task;
-//    }
 }

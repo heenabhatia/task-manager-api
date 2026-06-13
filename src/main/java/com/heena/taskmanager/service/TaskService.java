@@ -1,10 +1,14 @@
 package com.heena.taskmanager.service;
 
+import com.heena.taskmanager.dto.TaskRequestDTO;
 import com.heena.taskmanager.dto.TaskResponseDTO;
+import com.heena.taskmanager.model.Status;
 import com.heena.taskmanager.model.Task;
 import com.heena.taskmanager.repository.TaskRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,38 +21,63 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    public Task addTask(Task task) {
-        return taskRepository.save(task);
+    public List<TaskResponseDTO> getAllTasks() {
+        List<Task> tasks = taskRepository.findAll();
+
+        List<TaskResponseDTO> taskResponseDTOS = new ArrayList<>();
+        for (Task task : tasks) {
+            taskResponseDTOS.add(mapToTaskResponse(task));
+        }
+        return taskResponseDTOS;
     }
 
-    public List<Task> getAllTasks() {
-        return taskRepository.findAll();
+    public List<TaskResponseDTO> getTasksByStatus(Status status) {
+        List<Task> tasks = taskRepository.findByStatus(status);
+
+        List<TaskResponseDTO> taskResponseDTOS = new ArrayList<>();
+        for (Task task : tasks) {
+            taskResponseDTOS.add(mapToTaskResponse(task));
+        }
+        return taskResponseDTOS;
     }
 
-    public List<Task> getCompletedTasks(boolean completed) {
-        return taskRepository.findByCompleted(completed);
+    public List<TaskResponseDTO> getCompletedTasksUsingQuery() {
+        List<Task> tasks = taskRepository.findCompletedTasks();
+
+        List<TaskResponseDTO> taskResponseDTOS = new ArrayList<>();
+        for (Task task : tasks) {
+            taskResponseDTOS.add(mapToTaskResponse(task));
+        }
+        return taskResponseDTOS;
     }
 
-    public List<Task> getCompletedTasksUsingQuery() {
-        return taskRepository.findCompletedTasks();
+    public Optional<TaskResponseDTO> getTaskResponseById(Long id) {
+
+        Optional<Task> task = taskRepository.findById(id);
+
+        if (task.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Task savedTask = task.get();
+
+        return Optional.of(mapToTaskResponse(savedTask));
     }
 
-    public Optional<Task> getTaskById(Long id) {
-        return taskRepository.findById(id);
-    }
-
-    public Optional<Task> updateTask(Long id, Task updatedTask) {
-
+    public Optional<TaskResponseDTO> updateTask(Long id, TaskRequestDTO request) {
         Optional<Task> existingTask = taskRepository.findById(id);
 
         if (existingTask.isPresent()) {
-
             Task task = existingTask.get();
 
-            task.setTitle(updatedTask.getTitle());
-            task.setCompleted(updatedTask.isCompleted());
+            task.setTitle(request.getTitle());
+            task.setDescription(request.getDescription());
+            task.setPriority(request.getPriority());
+            task.setStatus(request.getStatus());
+            task.setUpdatedAt(LocalDateTime.now());
 
-            return Optional.of(taskRepository.save(task));
+            Task savedTask = taskRepository.save(task);
+            return Optional.of(mapToTaskResponse(savedTask));
         }
 
         return Optional.empty();
@@ -64,36 +93,30 @@ public class TaskService {
         return false;
     }
 
-    public TaskResponseDTO getTaskResponseById(Long id) {
+    public TaskResponseDTO addTask(TaskRequestDTO request) {
+        Task task = new Task();
 
-        Optional<Task> task = taskRepository.findById(id);
+        task.setTitle(request.getTitle());
+        task.setDescription(request.getDescription());
+        task.setPriority(request.getPriority());
+        task.setStatus(request.getStatus());
+        task.setCreatedAt(LocalDateTime.now());
+        task.setUpdatedAt(LocalDateTime.now());
 
-        if (task.isEmpty()) {
-            return null;
-        }
+        Task savedTask = taskRepository.save(task);
 
-        Task t = task.get();
-
-        return new TaskResponseDTO(
-                t.getId(),
-                t.getTitle(),
-                t.isCompleted()
-        );
+        return mapToTaskResponse(savedTask);
     }
 
-//    public Task getTaskById(Long id) {
-//        return taskRepository.findById(id)
-//                .orElseThrow();
-//    }
-
-    //private final List<Task> tasks = new ArrayList<>();
-
-//    public Task addTask(Task task) {
-//        tasks.add(task);
-//        return task;
-//    }
-
-//    public List<Task> getAllTasks() {
-//        return tasks;
-//    }
+    private TaskResponseDTO mapToTaskResponse(Task task) {
+        return new TaskResponseDTO(
+                task.getId(),
+                task.getTitle(),
+                task.getDescription(),
+                task.getPriority(),
+                task.getStatus(),
+                task.getCreatedAt(),
+                task.getUpdatedAt()
+        );
+    }
 }

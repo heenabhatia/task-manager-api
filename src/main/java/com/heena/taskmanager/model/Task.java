@@ -1,10 +1,9 @@
 package com.heena.taskmanager.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+
+import java.time.LocalDateTime;
 
 @Entity
 public class Task {
@@ -13,15 +12,25 @@ public class Task {
     private Long id;
     @NotBlank
     private String title;
-    private boolean completed;
+    private String description;
+    @Enumerated(EnumType.STRING)
+    private Priority priority;
+    @Enumerated(EnumType.STRING)
+    private Status status;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public Task() {
     }
 
-    public Task(Long id, String title, boolean completed) {
+    public Task(Long id, String title, String description, Priority priority, Status status, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
-        this.completed = completed;
+        this.description = description;
+        this.priority = priority;
+        this.status = status;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public Long getId() {
@@ -40,11 +49,43 @@ public class Task {
         this.title = title;
     }
 
-    public boolean isCompleted() {
-        return completed;
+    public String getDescription() {
+        return description;
     }
 
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
+    }
+
+    public Status getStatus() {
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
