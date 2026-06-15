@@ -2,6 +2,7 @@ package com.heena.taskmanager.controller;
 
 import com.heena.taskmanager.dto.TaskRequestDTO;
 import com.heena.taskmanager.dto.TaskResponseDTO;
+import com.heena.taskmanager.model.Category;
 import com.heena.taskmanager.model.Status;
 import com.heena.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
@@ -20,22 +21,27 @@ public class TaskController {
         this.taskService = taskService;
     }
 
-    @GetMapping("/v2/tasks")
+    @GetMapping("/api/tasks")
     public List<TaskResponseDTO> getAllTasks() {
         return taskService.getAllTasks();
     }
 
-    @GetMapping("/v2/tasks/completed")
+    @GetMapping("/api/tasks/completed")
     public List<TaskResponseDTO> getCompletedTasks() {
         return taskService.getTasksByStatus(Status.DONE);
     }
 
-    @GetMapping("/v2/tasks/completed-query")
+    @GetMapping("/api/tasks/completed-query")
     public List<TaskResponseDTO> getCompletedTasksUsingQuery() {
         return taskService.getCompletedTasksUsingQuery();
     }
 
-    @GetMapping("/v2/tasks/{id}")
+    @GetMapping("/api/tasks/overdue")
+    public List<TaskResponseDTO> findOverdueTasks() {
+        return taskService.findOverdueTasksUsingQuery();
+    }
+
+    @GetMapping("/api/tasks/{id}")
     public ResponseEntity<TaskResponseDTO> getTaskDtoById(
             @PathVariable Long id) {
 
@@ -46,13 +52,13 @@ public class TaskController {
 
     }
 
-    @PostMapping("/v2/tasks")
+    @PostMapping("/api/tasks")
     public TaskResponseDTO createTask(@Valid @RequestBody TaskRequestDTO request) {
         return taskService.addTask(request);
     }
 
-    @PutMapping("/v2/tasks/{id}")
-    public ResponseEntity<TaskResponseDTO> updateTask2(
+    @PutMapping("/api/tasks/{id}")
+    public ResponseEntity<TaskResponseDTO> updateTask(
             @PathVariable Long id,
             @Valid @RequestBody TaskRequestDTO request) {
 
@@ -63,7 +69,7 @@ public class TaskController {
 
     }
 
-    @DeleteMapping("/tasks/{id}")
+    @DeleteMapping("/api/tasks/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
 
         boolean deleted = taskService.deleteTask(id);
@@ -73,5 +79,18 @@ public class TaskController {
         }
 
         return ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/api/tasks/search")
+    public List<TaskResponseDTO> findTasksByTitle(
+            @RequestParam String title) {
+        return taskService.findTasksByTitle(title);
+    }
+
+    @GetMapping("/api/tasks/search2")
+    public List<TaskResponseDTO> findTasksByTitleAndCategory(
+            @RequestParam String title,
+            @RequestParam Category category) {
+        return taskService.findTasksByTitleAndCategory(title, category);
     }
 }
