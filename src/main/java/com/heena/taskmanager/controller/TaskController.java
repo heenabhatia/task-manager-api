@@ -6,6 +6,8 @@ import com.heena.taskmanager.model.Category;
 import com.heena.taskmanager.model.Status;
 import com.heena.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,8 +24,8 @@ public class TaskController {
     }
 
     @GetMapping("/api/tasks")
-    public List<TaskResponseDTO> getAllTasks() {
-        return taskService.getAllTasks();
+    public Page<TaskResponseDTO> getAllTasks(Pageable pageable) {
+        return taskService.getAllTasksPageWise(pageable);
     }
 
     @GetMapping("/api/tasks/completed")
@@ -68,6 +70,19 @@ public class TaskController {
         return updatedTask.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
 
     }
+
+    @PatchMapping("/api/tasks/{id}/complete")
+    public ResponseEntity<TaskResponseDTO> markTaskAsCompleted(
+            @PathVariable Long id) {
+
+        Optional<TaskResponseDTO> updatedTask =
+                taskService.markTaskAsCompleted(id);
+
+        return updatedTask.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+
+    }
+
+
 
     @DeleteMapping("/api/tasks/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {

@@ -6,9 +6,13 @@ import com.heena.taskmanager.model.Category;
 import com.heena.taskmanager.model.Status;
 import com.heena.taskmanager.model.Task;
 import com.heena.taskmanager.repository.TaskRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,10 +25,10 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    public List<TaskResponseDTO> getAllTasks() {
-        List<Task> tasks = taskRepository.findAll();
+    public Page<TaskResponseDTO> getAllTasksPageWise(Pageable pageable) {
+        Page<Task> tasksPage = taskRepository.findAll(pageable);
 
-        return tasks.stream().map(this::mapToTaskResponse).toList();
+        return tasksPage.map(this::mapToTaskResponse);
     }
 
     public List<TaskResponseDTO> getTasksByStatus(Status status) {
@@ -64,6 +68,18 @@ public class TaskService {
     public Optional<TaskResponseDTO> updateTask(Long id, TaskRequestDTO request) {
         return taskRepository.findById(id)
                 .map(task -> mapToTaskResponse(mapFromTaskRequest(task, request)));
+    }
+
+    public Optional<TaskResponseDTO> markTaskAsCompleted(Long id) {
+        return taskRepository.findById(id).map(task -> {
+            if(task.getStatus() != Status.DONE) {
+                task.setStatus(Status.DONE);
+                task.setUpdatedAt(LocalDateTime.now());
+
+                taskRepository.save(task);
+            }
+            return mapToTaskResponse(task);
+        });
     }
 
     public boolean deleteTask(Long id) {
