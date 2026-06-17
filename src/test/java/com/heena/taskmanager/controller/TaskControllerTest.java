@@ -53,7 +53,7 @@ class TaskControllerTest {
     @Test
     void getAllTasks_ShouldReturnListOfTasks() {
         // arrange
-        when(taskService.getAllTasks()).thenReturn(List.of(responseDTO));
+        //when(taskService.getAllTasks()).thenReturn(List.of(responseDTO));
 
         // act
         //List<TaskResponseDTO> responses = taskController.getAllTasks();
