@@ -10,6 +10,10 @@ import com.heena.taskmanager.repository.TaskRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -56,14 +60,18 @@ class TaskServiceTest {
     @Test
     void getAllTasks_ShouldReturnListOfTaskResponseDTOs() {
         // arrange
-        when(taskRepository.findAll()).thenReturn(List.of(task));
+        Pageable pageable = PageRequest.of(0, 5);
+        Page<Task> tasksPage = new PageImpl<>(List.of(task));
+
+        when(taskRepository.findAll(pageable)).thenReturn(tasksPage);
 
         // act
-        List<TaskResponseDTO> result = taskService.getAllTasks();
+        Page<TaskResponseDTO> result = taskService.getAllTasksPageWise(pageable);
 
         // assert
-        assertEquals(1, result.size());
-        assertEquals("Learning Unit Testing", result.get(0).getTitle());
+        assertEquals(1, result.getTotalElements());
+        assertEquals(1, result.getContent().size());
+        assertEquals("Learning Unit Testing", result.getContent().get(0).getTitle());
     }
 
     @Test
@@ -193,5 +201,59 @@ class TaskServiceTest {
 
         //verify
         verify(taskRepository, never()).deleteById(anyLong());
+    }
+    @Test
+    void findTasksByTitle_ShouldReturnMatchingTasks() {
+        // arrange
+        when(taskRepository.findByTitleContainingIgnoreCase("Testing")).thenReturn(List.of(task));
+
+        // act
+        List<TaskResponseDTO> result = taskService.findTasksByTitle("Testing");
+
+        // assert
+        assertEquals(1, result.size());
+        assertEquals("Learning Unit Testing", result.get(0).getTitle());
+    }
+
+    @Test
+    void findTasksByTitleAndCategory_ShouldReturnMatchingTasks() {
+        // arrange
+        when(taskRepository.findByCategoryAndTitleContainingIgnoreCase(Category.LEARNING, "Testing"))
+                .thenReturn(List.of(task));
+
+        // act
+        List<TaskResponseDTO> result = taskService.findTasksByTitleAndCategory("Testing", Category.LEARNING);
+
+        // assert
+        assertEquals(1, result.size());
+        assertEquals("Learning Unit Testing", result.get(0).getTitle());
+        assertEquals(Category.LEARNING, result.get(0).getCategory());
+    }
+
+    @Test
+    void findOverdueTasksUsingQuery_ShouldReturnOverdueTasks() {
+        // arrange
+        when(taskRepository.findOverdueTasks()).thenReturn(List.of(task));
+
+        // act
+        List<TaskResponseDTO> result = taskService.findOverdueTasksUsingQuery();
+
+        // assert
+        assertEquals(1, result.size());
+    }
+
+    @Test
+    void markTaskAsCompleted_ShouldReturnOkResponse() {
+        // arrange
+        when(taskRepository.findById(1L)).thenReturn(Optional.of(task));
+        when(taskRepository.save(any(Task.class))).thenReturn(task);
+
+        // act
+        Optional<TaskResponseDTO> result = taskService.markTaskAsCompleted(1L);
+
+        // assert
+        assertTrue(result.isPresent());
+        assertEquals("Learning Unit Testing", result.get().getTitle());
+        assertEquals(Category.LEARNING, result.get().getCategory());
     }
 }

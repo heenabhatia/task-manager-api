@@ -23,6 +23,11 @@ A RESTful task manager application built with Spring Boot. The application provi
 - RESTful API structure
 - Layered Spring Boot architecture
 - Unit tests for Service and Controller layers
+- Run the application with Docker
+- Add Swagger/OpenAPI documentation
+- Add task reminders and notifications
+- Replace H2 with PostgreSQL
+- Add integration tests using MockMvc
 
 ## Tech Stack
 
@@ -33,6 +38,7 @@ A RESTful task manager application built with Spring Boot. The application provi
 - Hibernate
 - Maven
 - H2 Database
+- PostgreSQL
 - Lombok
 - JUnit 5 and Mockito
 
@@ -85,7 +91,7 @@ mvn test
 
 ## Configuration
 
-Update `src/main/resources/application.properties` with your database settings.
+Update `src/main/resources/application.properties` with your database settings for H2 Database.
 
 ```properties
 spring.datasource.url=jdbc:h2:mem:taskdb
@@ -95,6 +101,17 @@ spring.datasource.password=
 spring.jpa.hibernate.ddl-auto=update
 spring.h2.console.enabled=true
 ```
+
+or Update `src/main/resources/application.properties` with your database settings for PostrageDB.
+
+```properties
+spring.datasource.url=jdbc:postgresql://localhost:5433/taskmanager
+spring.datasource.username=heena
+spring.datasource.password=password
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+```
+
 
 ## API Endpoints
 
@@ -158,8 +175,5 @@ Example task fields:
 
 
 ## Future Improvements
-- Run the application with Docker
 - Add Swagger/OpenAPI documentation
-- Add task reminders and notifications 
-- Replace H2 with PostgreSQL 
-- Add integration tests using MockMvc
+- Add task reminders and notifications
