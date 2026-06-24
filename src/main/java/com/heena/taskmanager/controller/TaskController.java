@@ -1,12 +1,13 @@
 package com.heena.taskmanager.controller;
 
+import com.heena.taskmanager.dto.PageResponseDTO;
 import com.heena.taskmanager.dto.TaskRequestDTO;
 import com.heena.taskmanager.dto.TaskResponseDTO;
 import com.heena.taskmanager.model.Category;
+import com.heena.taskmanager.model.Priority;
 import com.heena.taskmanager.model.Status;
 import com.heena.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +25,14 @@ public class TaskController {
     }
 
     @GetMapping("/api/tasks")
-    public Page<TaskResponseDTO> getAllTasks(Pageable pageable) {
-        return taskService.getAllTasksPageWise(pageable);
+    public PageResponseDTO<TaskResponseDTO> getAllFilteredTasks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) Status status,
+            @RequestParam(required = false) Priority priority,
+            @RequestParam(required = false) Category category,
+            Pageable pageable) {
+        return taskService.getAllFilteredTasks(
+                title, status, priority, category, pageable);
     }
 
     @GetMapping("/api/tasks/completed")
@@ -82,11 +89,8 @@ public class TaskController {
 
     }
 
-
-
     @DeleteMapping("/api/tasks/{id}")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-
         boolean deleted = taskService.deleteTask(id);
 
         if (deleted) {
@@ -94,18 +98,5 @@ public class TaskController {
         }
 
         return ResponseEntity.notFound().build();
-    }
-
-    @GetMapping("/api/tasks/search")
-    public List<TaskResponseDTO> findTasksByTitle(
-            @RequestParam String title) {
-        return taskService.findTasksByTitle(title);
-    }
-
-    @GetMapping("/api/tasks/search2")
-    public List<TaskResponseDTO> findTasksByTitleAndCategory(
-            @RequestParam String title,
-            @RequestParam Category category) {
-        return taskService.findTasksByTitleAndCategory(title, category);
     }
 }

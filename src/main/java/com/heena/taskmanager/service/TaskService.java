@@ -1,14 +1,19 @@
 package com.heena.taskmanager.service;
 
+import com.heena.taskmanager.dto.PageResponseDTO;
 import com.heena.taskmanager.dto.TaskRequestDTO;
 import com.heena.taskmanager.dto.TaskResponseDTO;
 import com.heena.taskmanager.model.Category;
+import com.heena.taskmanager.model.Priority;
 import com.heena.taskmanager.model.Status;
 import com.heena.taskmanager.model.Task;
 import com.heena.taskmanager.repository.TaskRepository;
 
+import com.heena.taskmanager.repository.specification.TaskSpecification;
+import jakarta.annotation.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 
@@ -25,28 +30,33 @@ public class TaskService {
         this.taskRepository = taskRepository;
     }
 
-    public Page<TaskResponseDTO> getAllTasksPageWise(Pageable pageable) {
-        Page<Task> tasksPage = taskRepository.findAll(pageable);
-
-        return tasksPage.map(this::mapToTaskResponse);
-    }
-
     public List<TaskResponseDTO> getTasksByStatus(Status status) {
         List<Task> tasks = taskRepository.findByStatus(status);
 
         return tasks.stream().map(this::mapToTaskResponse).toList();
     }
 
-    public List<TaskResponseDTO> findTasksByTitle(String title) {
-        List<Task> tasksByTitle = taskRepository.findByTitleContainingIgnoreCase(title);
+    public PageResponseDTO<TaskResponseDTO> getAllFilteredTasks(
+            @Nullable String title, @Nullable Status status, @Nullable Priority priority,
+            @Nullable Category category,Pageable pageable) {
 
-        return tasksByTitle.stream().map(this::mapToTaskResponse).toList();
-    }
+        Specification<Task> spec = Specification.allOf();
 
-    public List<TaskResponseDTO> findTasksByTitleAndCategory(String title, Category category) {
-        List<Task> tasks = taskRepository.findByCategoryAndTitleContainingIgnoreCase(category, title);
+        if (title != null && !title.isBlank()) {
+            spec = spec.and(TaskSpecification.hasTitle(title));
+        }
+        if (status != null) {
+            spec = spec.and(TaskSpecification.hasStatus(status));
+        }
+        if (priority != null) {
+            spec = spec.and(TaskSpecification.hasPriority(priority));
+        }
+        if (category != null) {
+            spec = spec.and(TaskSpecification.hasCategory(category));
+        }
 
-        return tasks.stream().map(this::mapToTaskResponse).toList();
+        Page<Task> taskPages = taskRepository.findAll(spec, pageable);
+        return mapToPageTaskResponse(taskPages);
     }
 
     public List<TaskResponseDTO> getCompletedTasksUsingQuery() {
@@ -120,5 +130,15 @@ public class TaskService {
         task.setDueDate(request.getDueDate());
 
         return taskRepository.save(task);
+    }
+
+    private PageResponseDTO<TaskResponseDTO> mapToPageTaskResponse(Page<Task> taskPages) {
+        List<TaskResponseDTO> tasks = taskPages.map(this::mapToTaskResponse).toList();
+        return new PageResponseDTO<>(
+                tasks,
+                taskPages.getNumber(),
+                taskPages.getTotalPages(),
+                taskPages.getTotalElements()
+        );
     }
 }

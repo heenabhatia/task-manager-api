@@ -10,10 +10,6 @@ import com.heena.taskmanager.repository.TaskRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -55,23 +51,6 @@ class TaskServiceTest {
         requestDTO.setPriority(Priority.HIGH);
         requestDTO.setStatus(Status.IN_PROGRESS);
         requestDTO.setDueDate(LocalDate.now());
-    }
-
-    @Test
-    void getAllTasks_ShouldReturnListOfTaskResponseDTOs() {
-        // arrange
-        Pageable pageable = PageRequest.of(0, 5);
-        Page<Task> tasksPage = new PageImpl<>(List.of(task));
-
-        when(taskRepository.findAll(pageable)).thenReturn(tasksPage);
-
-        // act
-        Page<TaskResponseDTO> result = taskService.getAllTasksPageWise(pageable);
-
-        // assert
-        assertEquals(1, result.getTotalElements());
-        assertEquals(1, result.getContent().size());
-        assertEquals("Learning Unit Testing", result.getContent().get(0).getTitle());
     }
 
     @Test
@@ -201,33 +180,6 @@ class TaskServiceTest {
 
         //verify
         verify(taskRepository, never()).deleteById(anyLong());
-    }
-    @Test
-    void findTasksByTitle_ShouldReturnMatchingTasks() {
-        // arrange
-        when(taskRepository.findByTitleContainingIgnoreCase("Testing")).thenReturn(List.of(task));
-
-        // act
-        List<TaskResponseDTO> result = taskService.findTasksByTitle("Testing");
-
-        // assert
-        assertEquals(1, result.size());
-        assertEquals("Learning Unit Testing", result.get(0).getTitle());
-    }
-
-    @Test
-    void findTasksByTitleAndCategory_ShouldReturnMatchingTasks() {
-        // arrange
-        when(taskRepository.findByCategoryAndTitleContainingIgnoreCase(Category.LEARNING, "Testing"))
-                .thenReturn(List.of(task));
-
-        // act
-        List<TaskResponseDTO> result = taskService.findTasksByTitleAndCategory("Testing", Category.LEARNING);
-
-        // assert
-        assertEquals(1, result.size());
-        assertEquals("Learning Unit Testing", result.get(0).getTitle());
-        assertEquals(Category.LEARNING, result.get(0).getCategory());
     }
 
     @Test
