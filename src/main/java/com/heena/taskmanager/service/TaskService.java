@@ -17,6 +17,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -38,7 +39,8 @@ public class TaskService {
 
     public PageResponseDTO<TaskResponseDTO> getAllFilteredTasks(
             @Nullable String title, @Nullable Status status, @Nullable Priority priority,
-            @Nullable Category category,Pageable pageable) {
+            @Nullable Category category, @Nullable LocalDate duedate,
+            @Nullable LocalDate fromDate, @Nullable LocalDate toDate, Pageable pageable) {
 
         Specification<Task> spec = Specification.allOf();
 
@@ -53,6 +55,15 @@ public class TaskService {
         }
         if (category != null) {
             spec = spec.and(TaskSpecification.hasCategory(category));
+        }
+        if (duedate != null) {
+            spec = spec.and(TaskSpecification.hasDuedate(duedate));
+        }
+        if (fromDate != null) {
+            spec = spec.and(TaskSpecification.dueDateGreaterThanOrEqual(fromDate));
+        }
+        if (toDate != null) {
+            spec = spec.and(TaskSpecification.dueDateLessThanOrEqual(toDate));
         }
 
         Page<Task> taskPages = taskRepository.findAll(spec, pageable);

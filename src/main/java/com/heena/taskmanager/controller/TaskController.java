@@ -9,9 +9,12 @@ import com.heena.taskmanager.model.Status;
 import com.heena.taskmanager.service.TaskService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,9 +33,13 @@ public class TaskController {
             @RequestParam(required = false) Status status,
             @RequestParam(required = false) Priority priority,
             @RequestParam(required = false) Category category,
+            @RequestParam(required = false) LocalDate duedate,
+            @RequestParam(required = false) LocalDate fromDate,
+            @RequestParam(required = false) LocalDate toDate,
+            @PageableDefault(sort = "dueDate", direction = Sort.Direction.ASC)
             Pageable pageable) {
         return taskService.getAllFilteredTasks(
-                title, status, priority, category, pageable);
+                title, status, priority, category, duedate, fromDate, toDate, pageable);
     }
 
     @GetMapping("/api/tasks/completed")

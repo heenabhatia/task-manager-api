@@ -14,6 +14,14 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @Entity
+@Table(
+        name = "task",
+        indexes = {
+                @Index(name = "idx_task_status", columnList = "status"),
+                @Index(name = "idx_task_priority", columnList = "priority"),
+                @Index(name = "idx_task_category", columnList = "category")
+        }
+)
 public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

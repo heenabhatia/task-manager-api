@@ -11,7 +11,6 @@ import java.util.List;
 public interface TaskRepository extends JpaRepository<Task, Long>,
         JpaSpecificationExecutor<Task> {
 
-
     List<Task> findByStatus(Status status);
 
     @Query("SELECT t FROM Task t WHERE t.status = 'DONE'")
